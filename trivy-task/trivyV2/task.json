@@ -1,0 +1,286 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "8f9cb13f-f551-439c-83e4-fac6801c3fab",
+  "name": "trivy",
+  "friendlyName": "Trivy",
+  "description": "Trivy is the world's most popular open source vulnerability and misconfiguration scanner. It is reliable, fast, extremely easy to use, and it works wherever you need it.",
+  "helpMarkDown": "[Learn more about this task](https://github.com/k-lakshmikanth/trivy-azure-pipelines-task)",
+  "helpUrl": "https://github.com/k-lakshmikanth/trivy-azure-pipelines-task/docs/trivyv2.md",
+  "category": "Test",
+  "author": "Aqua Security",
+  "version": {
+    "Major": 2,
+    "Minor": 7,
+    "Patch": 4
+  },
+  "instanceNameFormat": "Echo trivy $(version)",
+  "groups": [
+    {
+      "name": "runnerInput",
+      "displayName": "Trivy Runner",
+      "isExpanded": true
+    },
+    {
+      "name": "scanInput",
+      "displayName": "Scan Options",
+      "isExpanded": true
+    },
+    {
+      "name": "reportsInput",
+      "displayName": "Reports",
+      "isExpanded": true
+    }
+  ],
+  "inputs": [
+    {
+      "name": "aquaPlatform",
+      "type": "connectedService:AquaPlatform",
+      "label": "Aqua Security Platform",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Select the Aqua Security Platform service connection."
+    },
+    {
+      "name": "aquaRegion",
+      "type": "string",
+      "label": "Aqua Platform Region",
+      "defaultValue": "",
+      "required": false,
+      "visibleRule": "aquaPlatform != \"\"",
+      "helpMarkDown": "Optional. Required for some custom CSPM authentication URLs. Valid values: `us`, `eu`, `singapore`, `australia`, `dev`. Auto-detected from the service connection when left empty."
+    },
+    {
+      "groupName": "runnerInput",
+      "name": "method",
+      "type": "pickList",
+      "label": "Trivy Run Method",
+      "defaultValue": "install",
+      "required": false,
+      "helpMarkDown": "Specify how Trivy should be executed:</br>`install` to download Trivy from GitHub releases</br>`docker` to run Trivy as Docker container</br>`system` to use pre-installed Trivy executable.",
+      "options": {
+        "install": "install",
+        "docker": "docker",
+        "system": "system"
+      }
+    },
+    {
+      "groupName": "runnerInput",
+      "name": "image",
+      "type": "string",
+      "label": "Trivy Docker Image",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Specify a custom Trivy Docker image to use. If set, the `version` option is ignored.",
+      "visibleRule": "method = docker"
+    },
+    {
+      "groupName": "runnerInput",
+      "name": "trivyUrl",
+      "type": "string",
+      "label": "Custom Trivy Download URL",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Specify a custom URL to download Trivy from. If this option is used, the 'version' must be set to a specific version.",
+      "visibleRule": "method != system && method != docker"
+    },
+    {
+      "groupName": "runnerInput",
+      "name": "customCaCertPath",
+      "type": "filePath",
+      "label": "Custom CA Certificate Path",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Path to a custom CA certificate file on the agent to trust when downloading Trivy. This is the recommended approach for self-signed certificates.",
+      "visibleRule": "trivyUrl != \"\""
+    },
+    {
+      "groupName": "runnerInput",
+      "name": "skipDownloadCertificateChecking",
+      "type": "boolean",
+      "label": "Skip Download Certificate Checking",
+      "defaultValue": false,
+      "required": false,
+      "helpMarkDown": "Skip the certificate checking when downloading Trivy from a custom URL. This is useful when the custom URL is self-signed or has a certificate that is not trusted by the system but care should be taken to ensure the security of the system.",
+      "visibleRule": "trivyUrl != \"\""
+    },
+    {
+      "groupName": "runnerInput",
+      "name": "version",
+      "type": "string",
+      "label": "Trivy Version",
+      "defaultValue": "latest",
+      "required": false,
+      "helpMarkDown": "Specify the version of Trivy to use. Ignored if a custom Trivy Docker image is specified.",
+      "visibleRule": "method != system || image != \"\""
+    },
+    {
+      "groupName": "runnerInput",
+      "name": "options",
+      "type": "string",
+      "label": "Trivy Options",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Provide additional command-line options to pass to the Trivy executable."
+    },
+    {
+      "groupName": "scanInput",
+      "name": "type",
+      "type": "pickList",
+      "label": "Scan Type",
+      "required": true,
+      "helpMarkDown": "The type of scan to perform.",
+      "options": {
+        "filesystem": "filesystem",
+        "image": "image",
+        "repository": "repository",
+        "sbom": "sbom"
+      }
+    },
+    {
+      "groupName": "scanInput",
+      "name": "target",
+      "type": "string",
+      "label": "Scan Target",
+      "required": true,
+      "helpMarkDown": "The specified target will be scanned using selected scan type."
+    },
+    {
+      "groupName": "scanInput",
+      "name": "scanners",
+      "type": "pickList",
+      "label": "Security scanners",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Choose which scanners to run. Default depends on scant type.",
+      "options": {
+        "license": "license",
+        "misconfig": "misconfig",
+        "secret": "secret",
+        "vuln": "vuln"
+      },
+      "properties": {
+        "EditableOptions": "True",
+        "MultiSelectFlatList": "True"
+      }
+    },
+    {
+      "groupName": "scanInput",
+      "name": "severities",
+      "type": "pickList",
+      "label": "Security severities",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Severities of security issues to be displayed. Default depends on scant type.",
+      "options": {
+        "UNKNOWN": "UNKNOWN",
+        "LOW": "LOW",
+        "MEDIUM": "MEDIUM",
+        "HIGH": "HIGH",
+        "CRITICAL": "CRITICAL"
+      },
+      "properties": {
+        "EditableOptions": "False",
+        "MultiSelectFlatList": "True"
+      }
+    },
+    {
+      "groupName": "scanInput",
+      "name": "ignoreUnfixed",
+      "type": "boolean",
+      "label": "Ignore Unfixed",
+      "defaultValue": false,
+      "required": false,
+      "helpMarkDown": "Include only fixed vulnerabilities."
+    },
+    {
+      "groupName": "scanInput",
+      "name": "showSuppressed",
+      "type": "boolean",
+      "label": "Show Suppressed",
+      "defaultValue": false,
+      "required": false,
+      "helpMarkDown": "Include any issues that have been ignored through config."
+    },
+    {
+      "groupName": "scanInput",
+      "name": "ignoreScanErrors",
+      "type": "boolean",
+      "label": "Ignore Scan errors",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Ignore scan errors and continue the pipeline with `SucceededWithIssues` result."
+    },
+    {
+      "groupName": "scanInput",
+      "name": "failOnSeverityThreshold",
+      "type": "pickList",
+      "label": "Fail on Severity Level Threshold",
+      "defaultValue": "",
+      "required": false,
+      "options": {
+        "UNKNOWN": "UNKNOWN",
+        "LOW": "LOW",
+        "MEDIUM": "MEDIUM",
+        "HIGH": "HIGH",
+        "CRITICAL": "CRITICAL"
+      },
+      "helpMarkDown": "Set a threshold for failing the task based on the highest severity level found during the scan. If set, the task will fail if any issue with a severity equal to or higher than this level is found.",
+      "properties": {
+        "EditableOptions": "False",
+        "MultiSelectFlatList": "False"
+      }
+    },
+    {
+      "groupName": "reportsInput",
+      "name": "reports",
+      "type": "pickList",
+      "label": "Generate Additional Reports",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Select additional reports to generate. JSON report is always generated.",
+      "options": {
+        "asff": "asff",
+        "cosign": "cosign",
+        "cyclonedx": "cyclonedx",
+        "github": "github",
+        "html": "html",
+        "junit": "junit",
+        "sarif": "sarif",
+        "spdx": "spdx",
+        "spdxjson": "spdxjson",
+        "table": "table"
+      },
+      "properties": {
+        "EditableOptions": "False",
+        "MultiSelectFlatList": "True"
+      }
+    },
+    {
+      "groupName": "reportsInput",
+      "name": "publish",
+      "type": "boolean",
+      "label": "Publish reports as artifacts",
+      "defaultValue": false,
+      "required": false,
+      "helpMarkDown": "Publish generated reports as pipeline artifacts."
+    },
+    {
+      "groupName": "reportsInput",
+      "name": "templates",
+      "type": "string",
+      "label": "Report Templates Directory",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Specify a custom directory containing templates for the ASFF, HTML, JUnit reports. If not set, will lookup in the `contrib` directory of the Trivy installation.",
+      "visibleRule": "method == system && reports != \"\""
+    }
+  ],
+  "execution": {
+    "Node20_1": {
+      "target": "dist/index.js"
+    },
+    "Node16": {
+      "target": "dist/index.js"
+    }
+  }
+}

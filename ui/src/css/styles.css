@@ -1,0 +1,47 @@
+.dropdown {
+  align-self: center;
+  margin-right: 5px;
+  min-width: 200px;
+  width: auto;
+}
+
+.task-label {
+  align-self: center;
+  padding: 10px;
+}
+
+.task-dropdown {
+  align-self: center;
+  margin-right: 5px;
+  min-width: 500px;
+  width: auto;
+}
+
+.button {
+  align-self: center;
+}
+
+.vss-Dropdown--no-icon .bolt-dropdown-item .icon-container {
+  display: none !important;
+}
+
+.vss-Dropdown--no-icon .bolt-dropdown-item .text-container {
+  margin-left: 0 !important;
+}
+
+.bolt-textfield-input {
+  color: var(--text-primary-color);
+}
+
+.bolt-dropdown-list-box-container ul {
+  padding-left: 2px !important;
+}
+
+.statistic-item {
+  align-items: center;
+  margin-left: 1.3rem;
+}
+
+.statistic-count {
+  padding-top: 0.9rem;
+}

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "amd",
+    "moduleResolution": "node",
+    "jsx": "react",
+    "declaration": true,
+    "rootDir": "./src/",
+    "outDir": "./dist/",
+    "noImplicitThis": false,
+  },
+  "files": [
+    "src/index.tsx"
+  ]
+}

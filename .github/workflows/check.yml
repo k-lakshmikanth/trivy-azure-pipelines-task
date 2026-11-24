@@ -1,0 +1,36 @@
+name: check
+
+on:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: arc-runner-set
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+      - run: npm run test --prefix ui
+      - run: npm run test --prefix trivy-task/trivyV2
+      - name: Install file utility for extension packaging
+        run: |
+          if ! command -v file >/dev/null 2>&1; then
+            if command -v apt-get >/dev/null 2>&1; then
+              sudo apt-get update -qq && sudo apt-get install -y file
+            elif command -v apk >/dev/null 2>&1; then
+              sudo apk add --no-cache file
+            else
+              echo "file command not found and no supported package manager available"
+              exit 1
+            fi
+          fi
+      - run: npm run package
+        env:
+          # Set version to correctly render manifests
+          RELEASE_VERSION: 1.0.0
